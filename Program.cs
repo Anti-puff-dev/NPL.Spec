@@ -8,7 +8,7 @@ Console.WriteLine("NLP WORD CONQUERER");
 
 //Training();
 //Predict();
-//TrainingFromDb();
+TrainingFromDb();
 PredictCidClass();
 
 void Training()
@@ -47,6 +47,7 @@ void Training()
         .AddCategories("CatA", list1)
         .AddCategories("CatZ", list2)
         .AddCategories("CatK", list3)
+        .UsePreAttention(false)
         .Train();
 }
 
@@ -142,6 +143,7 @@ void TrainingFromDb()
         c++;
     }
 
+    classifier.UsePreAttention(true);
     classifier.Train();
 }
 
