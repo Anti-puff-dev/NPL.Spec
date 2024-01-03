@@ -9,7 +9,7 @@ Console.WriteLine("NLP WORD CONQUERER");
 
 //Training();
 //Predict();
-TrainingFromDb();
+//TrainingFromDb();
 PredictCidClass();
 
 void Training()
@@ -150,7 +150,7 @@ void TrainingFromDb()
 
 void PredictCidClass()
 {
-    NLP.Classify classifier = NLP.Classify.Instance().Model("word-conquerer-attention-model.bin", true);
+    NLP.Classify classifier = NLP.Classify.Instance().Model("conquerer-cid10-attention-model.bin", true);
 
     //C
     NLP.Models.Result[] results1 = classifier.Predict("o linfoma não-hodgkin difuso é um tipo de câncer que afeta o sistema linfático, responsável pela defesa do organismo. é caracterizado por células malignas que se espalham rapidamente por todo o corpo.", 2);
