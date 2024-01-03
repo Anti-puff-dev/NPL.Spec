@@ -1,4 +1,5 @@
 ﻿using NLP;
+using NLP.Models;
 
 Console.WriteLine("NLP WORD CONQUERER");
 
@@ -48,7 +49,19 @@ void Training()
 
 void Predict()
 {
-    NLP.Models.Result[] results1 = NLP.Classify.Instance()
+    NLP.Classify classifier = NLP.Classify.Instance().Model("word-conquerer-attention-model.bin", true);
+    NLP.Models.Result[] results1 = classifier.Predict("problema relacionado com o medo ou possibilidade de perder o emprego atual tuberculosis, que afeta principalmente", 2);
+    NLP.Classify.Print(results1);
+    Console.WriteLine();
+    NLP.Models.Result[] results2 = classifier.Predict("intoxicações alimentares bacterianas não especificadas, exceto aquelas causadas por salmonella", 2);
+    NLP.Classify.Print(results2);
+    Console.WriteLine();
+    NLP.Models.Result[] results3 = classifier.Predict("através do ânus, podendo ser classificado em três tipos: prolapso mucos tuberculosis, que afeta principalmente", 2);
+    NLP.Classify.Print(results3);
+    Console.WriteLine();
+
+
+    /*NLP.Models.Result[] results1 = NLP.Classify.Instance()
         .Model("word-conquerer-attention-model.bin", true)
         .Predict("problema relacionado com o medo ou possibilidade de perder o emprego atual tuberculosis, que afeta principalmente", 2);
 
@@ -67,6 +80,6 @@ void Predict()
         .Predict("através do ânus, podendo ser classificado em três tipos: prolapso mucos tuberculosis, que afeta principalmente", 2);
 
     NLP.Classify.Print(results3);
-    Console.WriteLine();
-    
+    Console.WriteLine();*/
+
 }
