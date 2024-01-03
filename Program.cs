@@ -1,10 +1,16 @@
-﻿using NLP;
+﻿using Microsoft.Extensions.Configuration;
+using NLP;
 using NLP.Models;
+using MySQL;
+using System.Data;
+using MySqlX.XDevAPI.Relational;
 
 Console.WriteLine("NLP WORD CONQUERER");
 
 //Training();
-Predict();
+//Predict();
+TrainingFromDb();
+PredictCidClass();
 
 void Training()
 {
@@ -82,4 +88,92 @@ void Predict()
     NLP.Classify.Print(results3);
     Console.WriteLine();*/
 
+}
+
+
+
+void TrainingFromDb()
+{
+    var builder = new ConfigurationBuilder().SetBasePath(Directory.GetCurrentDirectory()).AddJsonFile("appsettings.json");
+    var configuration = builder.Build();
+
+    string string_connection = configuration["DefaultConnectionString"];
+    Dictionary<string, List<string>> htable = new Dictionary<string, List<string>>();
+    int c_all = 0;
+    int c = 0;
+
+    DataSet ds_data = Data.IQuery("SELECT cid_sub_categoria.id, cid_sub_categoria.categoria_id, cid_sub_categoria.descricao, cid_sub_categoria.info, cid_categoria.descricao AS nome FROM cid_sub_categoria LEFT JOIN cid_categoria ON cid_categoria.id=cid_sub_categoria.categoria_id  ORDER BY id ASC", string_connection, new string[] { });
+
+    foreach (DataRow dr in ds_data.Tables[0].Rows)
+    {
+
+        if (!htable.ContainsKey(dr["id"].ToString().Substring(0, 1)))
+        {
+            //Console.WriteLine(dr["id"].ToString().Substring(0, 1));
+            htable[dr["id"].ToString().Substring(0, 1)] = new List<string>();
+        }
+        ((List<string>)htable[dr["id"].ToString().Substring(0, 1)]).Add(dr["info"].ToString());
+    }
+
+    Console.Clear();
+
+    c_all = htable.Count;
+
+
+    NLP.Classify classifier = NLP.Classify.Instance().Model("conquerer-cid10-attention-model.bin");
+
+    foreach (KeyValuePair<string, List<string>> item in htable)
+    {
+        double p = (100 * (c + 1) / c_all);
+
+        Console.SetCursorPosition(0, 0);
+        Console.ForegroundColor = ConsoleColor.Green;
+        Console.Write($"Query data  {c + 1}/{c_all} {Math.Ceiling(p)}% ");
+        Console.ForegroundColor = ConsoleColor.Red;
+        for (int i = 0; i < (int)Math.Ceiling(p / 4); i++)
+        {
+            Console.Write("#");
+        }
+        Console.Write("                                                        ");
+        Console.WriteLine();
+        Console.ForegroundColor = ConsoleColor.White;
+
+        //Console.WriteLine($"{item.Key.ToString()} {((List<string>)item.Value).Count()}");
+        classifier.AddCategories(item.Key.ToString(), ((List<string>)item.Value).ToArray());
+        c++;
+    }
+
+    classifier.Train();
+}
+
+
+
+void PredictCidClass()
+{
+    NLP.Classify classifier = NLP.Classify.Instance().Model("word-conquerer-attention-model.bin", true);
+
+    //C
+    NLP.Models.Result[] results1 = classifier.Predict("o linfoma não-hodgkin difuso é um tipo de câncer que afeta o sistema linfático, responsável pela defesa do organismo. é caracterizado por células malignas que se espalham rapidamente por todo o corpo.", 2);
+    NLP.Classify.Print(results1);
+    Console.WriteLine();
+
+    //Z
+    NLP.Models.Result[] results2 = classifier.Predict("convalescença é o período de recuperação após uma doença ou tratamento médico, e tratamento combinado é quando mais de um tipo de tratamento é utilizado para tratar uma doença.", 2);
+    NLP.Classify.Print(results2);
+    Console.WriteLine();
+
+    //K
+    NLP.Models.Result[] results3 = classifier.Predict("a fístula anorretal é uma comunicação anormal que se forma entre o canal anal ou reto e a pele ao redor do ânus. a causa mais comum é uma infecção do trato anal ou reto, que pode levar a um abscesso que não foi tratado adequadamente.", 2);
+    NLP.Classify.Print(results3);
+    Console.WriteLine();
+
+    //T
+    NLP.Models.Result[] results4 = classifier.Predict("o gás lacrimogêneo é um composto químico irritante utilizado em técnicas de controle de multidões. os sintomas de exposição incluem lacrimejamento, irritação dos olhos, tosse e dificuldade em respirar.", 2);
+    NLP.Classify.Print(results4);
+    Console.WriteLine();
+
+    //A
+    NLP.Models.Result[] results5 = classifier.Predict("essa categoria inclui outras intoxicações alimentares bacterianas não especificadas, exceto aquelas causadas por salmonella, shigella, campylobacter e clostridium perfringen", 2);
+    NLP.Classify.Print(results5);
+    Console.WriteLine();
 }
