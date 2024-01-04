@@ -190,7 +190,7 @@ void QnA()
 
     string string_connection = configuration["DefaultConnectionString"]!;
 
-    NLP.MySQL.Result[] results = NLP.MySQL.QnA.Instance("cid_sub_categoria", "info").Connection(string_connection).Predict("o que é a malária");
+    NLP.MySQL.Result[] results = NLP.MySQL.QnA.Instance("cid_sub_categoria", "info").Connection(string_connection).Predict("o que é a malária?");
 
     foreach(NLP.MySQL.Result r in results)
     {
