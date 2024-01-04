@@ -5,7 +5,7 @@ using MySQL;
 using System.Data;
 using MySQL.Service;
 
-Console.WriteLine("NLP WORD CONQUERER");
+Console.WriteLine("NLP by Felipe Martins");
 
 //Training();
 //Predict();
