@@ -3,13 +3,15 @@ using NLP;
 using NLP.Models;
 using MySQL;
 using System.Data;
+using MySQL.Service;
 
 Console.WriteLine("NLP WORD CONQUERER");
 
 //Training();
 //Predict();
-TrainingFromDb();
-PredictCidClass();
+//TrainingFromDb();
+//PredictCidClass();
+QnA();
 
 void Training()
 {
@@ -178,4 +180,21 @@ void PredictCidClass()
     NLP.Models.Result[] results5 = classifier.Predict("essa categoria inclui outras intoxicações alimentares bacterianas não especificadas, exceto aquelas causadas por salmonella, shigella, campylobacter e clostridium perfringen", 2);
     NLP.Classify.Print(results5);
     Console.WriteLine();
+}
+
+
+void QnA()
+{
+    var builder = new ConfigurationBuilder().SetBasePath(Directory.GetCurrentDirectory()).AddJsonFile("appsettings.json");
+    var configuration = builder.Build();
+
+    string string_connection = configuration["DefaultConnectionString"]!;
+
+    NLP.MySQL.Result[] results = NLP.MySQL.QnA.Instance("cid_sub_categoria", "info").Connection(string_connection).Predict("o que é a malária");
+
+    foreach(NLP.MySQL.Result r in results)
+    {
+        Console.WriteLine($"{r.phrase}");
+        //Console.WriteLine($"{r.confidence}");
+    }
 }
