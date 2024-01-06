@@ -13,6 +13,12 @@ Console.WriteLine("NLP by Felipe Martins");
 //PredictCidClass();
 QnA();
 
+
+
+
+
+
+
 void Training()
 {
 
