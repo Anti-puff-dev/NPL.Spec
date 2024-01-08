@@ -4,6 +4,7 @@ using NLP.Models;
 using MySQL;
 using System.Data;
 using MySQL.Service;
+using NLP.MySQL;
 
 Console.WriteLine("NLP by Felipe Martins");
 
@@ -11,8 +12,8 @@ Console.WriteLine("NLP by Felipe Martins");
 //Predict();
 //TrainingFromDb();
 //PredictCidClass();
-QnA();
-
+//QnA();
+Generative();
 
 
 
@@ -196,9 +197,28 @@ void QnA()
 
     string string_connection = configuration["DefaultConnectionString"]!;
 
-    NLP.MySQL.Result[] results = NLP.MySQL.QnA.Instance("cid_sub_categoria", "info").Connection(string_connection).Predict("o que é a malária?");
+    NLP.MySQL.Result[] results = NLP.MySQL.QnA.Instance("cid_sub_categoria", "info").Connection(string_connection).PredictFree("o que é a colera?");
 
-    foreach(NLP.MySQL.Result r in results)
+    foreach (NLP.MySQL.Result r in results)
+    {
+        Console.WriteLine($"{r.phrase}");
+        //Console.WriteLine($"{r.confidence}");
+    }
+}
+
+
+
+void Generative()
+{
+    var builder = new ConfigurationBuilder().SetBasePath(Directory.GetCurrentDirectory()).AddJsonFile("appsettings.json");
+    var configuration = builder.Build();
+
+    string string_connection = configuration["DefaultConnectionString"]!;
+
+    //NLP.MySQL.Result[] results = NLP.MySQL.Generative.Instance("cid_sub_categoria", "info").Connection(string_connection).NextWord("a colera é");
+    NLP.MySQL.Result[] results = NLP.MySQL.Generative.Instance("cid_sub_categoria", "info").Connection(string_connection).Seq2Seq("a colera é");
+
+    foreach (NLP.MySQL.Result r in results)
     {
         Console.WriteLine($"{r.phrase}");
         //Console.WriteLine($"{r.confidence}");
