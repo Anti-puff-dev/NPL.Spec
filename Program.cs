@@ -13,13 +13,87 @@ Console.WriteLine("NLP by Felipe Martins");
 //TrainingFromDb();
 //PredictCidClass();
 //QnA();
-Generative();
+//Generative();
+TraingConversationCategories("2");
 
 
 
 
 
 
+void TraingConversationCategories(string ExperimentId)
+{
+    int c_all = 0;
+    int c = 0;
+
+    MySQLService _db = new MySQLService();
+    var builder = new ConfigurationBuilder().SetBasePath(Directory.GetCurrentDirectory()).AddJsonFile("appsettings.json");
+    var configuration = builder.Build();
+    string string_connection = configuration["ConversationConnectionString"];
+
+
+
+    ExperimentCategory[] r = _db.Q<ExperimentCategory>("SELECT experiment_id, category_id, name FROM nlp_categories WHERE experiment_id=?experiment_id AND training=1", [ExperimentId], string_connection);
+
+    if (r.Length > 0)
+    {
+        Dictionary<string, List<string>> htable = new Dictionary<string, List<string>>();
+
+
+        foreach (ExperimentCategory category in r)
+        {
+            DataSet ds_data = _db.D("SELECT phrase FROM nlp_questions WHERE experiment_id=?experiment_id AND category_id=?category_id", [ExperimentId, category.category_id.ToString()], string_connection);
+
+            foreach (DataRow dr in ds_data.Tables[0].Rows)
+            {
+
+                if (!htable.ContainsKey(category.name))
+                {
+                    htable[category.name] = new List<string>();
+                }
+                ((List<string>)htable[category.name]).Add(dr["phrase"].ToString());
+            }
+        }
+
+        Console.Clear();
+
+        c_all = htable.Count;
+
+
+        NLP.Classify classifier = NLP.Classify.Instance().Model($"model_conversation_{r[0].experiment_id}.bin");
+
+        foreach (KeyValuePair<string, List<string>> item in htable)
+        {
+            double p = (100 * (c + 1) / c_all);
+
+            Console.SetCursorPosition(0, 0);
+            Console.ForegroundColor = ConsoleColor.Green;
+            Console.Write($"Query data  {c + 1}/{c_all} {Math.Ceiling(p)}% ");
+            Console.ForegroundColor = ConsoleColor.Red;
+            for (int i = 0; i < (int)Math.Ceiling(p / 4); i++)
+            {
+                Console.Write("#");
+            }
+            Console.Write("                                                        ");
+            Console.WriteLine();
+            Console.ForegroundColor = ConsoleColor.White;
+
+            classifier.AddCategories(item.Key.ToString(), ((List<string>)item.Value).ToArray());
+            c++;
+        }
+
+        classifier.UsePreAttention(true);
+        classifier.Train();
+
+        _db.D("UPDATE nlp_experiments SET training=2 WHERE experiment_id=?experiment_id", [ExperimentId], string_connection);
+        _db.D("UPDATE nlp_categories SET training=2 WHERE experiment_id=?experiment_id", [ExperimentId], string_connection);
+    }
+}
+
+
+
+
+#region Dev
 void Training()
 {
 
@@ -224,3 +298,19 @@ void Generative()
         //Console.WriteLine($"{r.confidence}");
     }
 }
+#endregion Dev
+
+
+
+
+#region Models
+public class ExperimentCategory
+{
+    public string experiment_id { get; set; }
+    public string category_id { get; set; }
+    public string name { get; set; }
+}
+
+
+
+#endregion Models
