@@ -42,7 +42,7 @@ void TraingConversationCategories(string ExperimentId)
 
         foreach (ExperimentCategory category in r)
         {
-            DataSet ds_data = _db.D("SELECT phrase FROM nlp_questions WHERE experiment_id=?experiment_id AND category_id=?category_id", [ExperimentId, category.category_id.ToString()], string_connection);
+            DataSet ds_data = _db.D("SET @experiment_id:=?_experiment_id; SET @category_id=?_category_id; SELECT phrase FROM nlp_answers WHERE experiment_id=@experiment_id AND category_id=@category_id UNION SELECT phrase FROM nlp_options WHERE experiment_id=@experiment_id AND category_id=@category_id UNION SELECT phrase FROM nlp_menus WHERE experiment_id=@experiment_id AND category_id=@category_id;", [ExperimentId, category.category_id.ToString()], string_connection);
 
             foreach (DataRow dr in ds_data.Tables[0].Rows)
             {
