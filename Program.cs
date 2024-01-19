@@ -15,7 +15,7 @@ Console.WriteLine("NLP by Felipe Martins");
 //QnA();
 //Generative();
 TraingConversationCategories("2");
-
+PredictConversationCategories("2", "");
 
 
 
@@ -33,7 +33,7 @@ void TraingConversationCategories(string ExperimentId)
 
 
 
-    ExperimentCategory[] r = _db.Q<ExperimentCategory>("SELECT experiment_id, category_id, name FROM nlp_categories WHERE experiment_id=?experiment_id AND training=1", [ExperimentId], string_connection);
+    ExperimentCategory[] r = _db.Q<ExperimentCategory>("SELECT experiment_id, category_id, name FROM nlp_categories WHERE experiment_id=?experiment_id", [ExperimentId], string_connection);
 
     if (r.Length > 0)
     {
@@ -47,14 +47,18 @@ void TraingConversationCategories(string ExperimentId)
             foreach (DataRow dr in ds_data.Tables[0].Rows)
             {
 
-                if (!htable.ContainsKey(category.name))
+                if (!htable.ContainsKey(category.category_id))
                 {
-                    htable[category.name] = new List<string>();
+                    htable[category.category_id] = new List<string>();
                 }
-                ((List<string>)htable[category.name]).Add(dr["phrase"].ToString());
+                ((List<string>)htable[category.category_id]).Add(dr["phrase"].ToString());
+                //
+                //Console.WriteLine(dr["phrase"].ToString());
             }
         }
 
+
+        Console.ReadKey();
         Console.Clear();
 
         c_all = htable.Count;
@@ -90,6 +94,13 @@ void TraingConversationCategories(string ExperimentId)
     }
 }
 
+
+void PredictConversationCategories(string ExperimentId, string text)
+{
+    NLP.Classify classifier = NLP.Classify.Instance().Model($"model_conversation_{ExperimentId}.bin", true);
+    NLP.Models.Result[] results1 = classifier.Predict("menu opções", 1);
+    NLP.Classify.Print(results1);
+}
 
 
 
